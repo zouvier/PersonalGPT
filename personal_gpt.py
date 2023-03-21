@@ -5,7 +5,7 @@ import concurrent.futures
 import pandas as pd
 import streamlit as st
 import openai
-
+import re
 
 # Load environment variables from .env file
 
@@ -71,6 +71,25 @@ def export_history(history):
     b64 = base64.b64encode(csv.encode()).decode()
     return f'<a href="data:file/csv;base64,{b64}" download="conversation_history.csv">Download CSV File</a>'
 
+def generate_unique_title(title, history):
+    """Generate a unique title for the conversation."""
+    unique_title = title
+    titles_in_history = [entry["title"] for entry in history]
+
+    match = re.search(r'(\d+)$', title)
+    if match:
+        counter = int(match.group(1)) + 1
+        unique_title = re.sub(r'\d+$', '', title).strip()
+    else:
+        counter = 2
+
+    while unique_title in titles_in_history or f"{unique_title} {counter}" in titles_in_history:
+        unique_title = re.sub(r'\d+$', '', unique_title).strip()
+        unique_title = f"{unique_title} {counter}"
+        counter += 1
+
+    return unique_title
+
 
 def build_ui():
     """Build the Streamlit user interface."""
@@ -83,6 +102,7 @@ def build_ui():
     previous_conversations = ["None"] + [entry["title"] for entry in history]
     selected_conversation = st.selectbox("Select a previous conversation that you want to continue:", previous_conversations)
     conversation_title = st.text_input("Title:")
+    conversation_title = generate_unique_title(conversation_title, history)
 
     if selected_conversation != "None":
         user_input = st.text_input("Input:") + "Previous conversation:" + selected_conversation
