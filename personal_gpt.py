@@ -4,29 +4,29 @@ import base64
 import concurrent.futures
 import pandas as pd
 import streamlit as st
-import openai
+from openai import OpenAI
 import re
 
 # Load environment variables from .env file
 
 # Set up your OpenAI API key and organization
-openai.api_key = os.getenv("OPENAI_API_KEY")
-openai.organization = os.getenv("OPENAI_ORGANIZATION")
+client = OpenAI()
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), organization=os.getenv("OPENAI_ORGANIZATION"))
+
 tab1, tab2 = st.sidebar.tabs(["Response Options", "Conversation History"])
 
 @st.cache_data()
 def generate_output(prompt, temperature=0.5, model="gpt-4"):
     """Generate output using the OpenAI API."""
     try:
-        response = openai.ChatCompletion.create(
-            model=model,
+        response = client.chat.completions.create(model=model,
             messages=[
                 {"role": "user", "content": prompt}
             ],
             n=1,
             stop=None,
-            temperature=temperature
-        )
+            temperature=temperature)
         message = response.choices[0].message.content
         return message
     except Exception as e:
