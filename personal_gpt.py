@@ -38,6 +38,8 @@ def generate_outputs(prompts, model, temperature=0.5, max_workers=5):
     """Generate outputs for multiple prompts using the OpenAI API."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(generate_output, prompt, temperature, model) for prompt in prompts]
+        for t in executor._threads:
+            st.runtime.scriptrunner.add_script_run_ctx(t)
         return [future.result() for future in concurrent.futures.as_completed(futures)]
 
 
