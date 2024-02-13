@@ -6,8 +6,8 @@ import pandas as pd
 import streamlit as st
 from openai import OpenAI
 import re
-
-# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Set up your OpenAI API key and organization
 client = OpenAI()
