@@ -30,13 +30,16 @@ currently, it supports conversation history management, including search, and ex
 
 3. Set up your OpenAI API key and organization:
 
-   - Create a `.env` file in the project directory and add the following lines: 
-     - OPENAI_API_KEY=your_openai_api_key 
-     - OPENAI_ORGANIZATION=your_openai_organization
+  - Create a `.env` file in the project directory and add the following lines: 
+    - OPENAI_API_KEY=your_openai_api_key 
+    - OPENAI_ORGANIZATION=your_openai_organization
+  - Use `cp env.example .env`
 
 Replace `your_openai_api_key` and `your_openai_organization` with your actual API key and organization.
 
 4. Run the Streamlit app:
+
+`streamlit run personal_gpt.py`
 
 
 5. Open the app in your web browser by navigating to the URL displayed in the terminal (usually http://localhost:8501).

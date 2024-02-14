@@ -4,29 +4,29 @@ import base64
 import concurrent.futures
 import pandas as pd
 import streamlit as st
-import openai
+from openai import OpenAI
 import re
-
-# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Set up your OpenAI API key and organization
-openai.api_key = os.getenv("OPENAI_API_KEY")
-openai.organization = os.getenv("OPENAI_ORGANIZATION")
+client = OpenAI()
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), organization=os.getenv("OPENAI_ORGANIZATION"))
+
 tab1, tab2 = st.sidebar.tabs(["Response Options", "Conversation History"])
 
 @st.cache_data()
 def generate_output(prompt, temperature=0.5, model="gpt-4"):
     """Generate output using the OpenAI API."""
     try:
-        response = openai.ChatCompletion.create(
-            model=model,
+        response = client.chat.completions.create(model=model,
             messages=[
                 {"role": "user", "content": prompt}
             ],
             n=1,
             stop=None,
-            temperature=temperature
-        )
+            temperature=temperature)
         message = response.choices[0].message.content
         return message
     except Exception as e:
@@ -38,6 +38,8 @@ def generate_outputs(prompts, model, temperature=0.5, max_workers=5):
     """Generate outputs for multiple prompts using the OpenAI API."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(generate_output, prompt, temperature, model) for prompt in prompts]
+        for t in executor._threads:
+            st.runtime.scriptrunner.add_script_run_ctx(t)
         return [future.result() for future in concurrent.futures.as_completed(futures)]
 
 
@@ -186,8 +188,11 @@ def build_conversation_history_ui(history):
     if chronological_order:
         filtered_history.reverse()
 
+    if len(filtered_history) == 0:
+        return
 
     num_pages = len(filtered_history) // entries_per_page + (1 if len(filtered_history) % entries_per_page > 0 else 0)
+
     page = tab2.number_input("Page:", min_value=1, max_value=num_pages, value=1, step=1)
     start_index = (page - 1) * entries_per_page
     end_index = start_index + entries_per_page
